@@ -1,58 +1,18 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="="en">
 <head>
-  <title>NusaSign Translator</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.12.0"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NusaSign - BISINDO Translator</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>NusaSign BISINDO Translator</h2>
-  <video id="video" width="300" autoplay muted></video>
-  <p id="outputText">Model loading...</p>
-
-  <script>
-    const outputText = document.getElementById('outputText');
-    const video = document.getElementById('video');
-
-    let tfModel, labelMap;
-
-    async function setupCamera() {
-      const stream = await navigator.mediaDevices.getUserMedia({video: true});
-      video.srcObject = stream;
-      return new Promise(resolve => {
-        video.onloadedmetadata = () => resolve(video);
-      });
-    }
-
-    async function loadModel() {
-      tfModel = await tf.loadGraphModel('model_tfjs/model.json');
-      const response = await fetch('model_tfjs/label_map.json');
-      labelMap = await response.json();
-      outputText.innerText = '✅ Model loaded. Showing prediction...';
-    }
-
-    async function predictFrame() {
-      if (!tfModel || !labelMap) return;
-      tf.engine().startScope();
-      const input = tf.browser.fromPixels(video)
-                      .resizeNearestNeighbor([96, 96])
-                      .toFloat()
-                      .div(255)
-                      .expandDims();
-      const prediction = await tfModel.predict(input).data();
-      const maxIdx = prediction.indexOf(Math.max(...prediction));
-      const label = Object.keys(labelMap).find(key => labelMap[key] === maxIdx);
-      outputText.innerText = `Gesture: ${label}`;
-      tf.engine().endScope();
-    }
-
-    async function main() {
-      await setupCamera();
-      await loadModel();
-      setInterval(predictFrame, 1000);
-    }
-
-    main();
-  </script>
+  <h1>NusaSign Translator</h1>
+  <div id="loading">🔄 Loading model...</div>
+  <video id="webcam" autoplay playsinline width="300" height="225"></video>
+  <div id="output">Gesture: <span id="prediction">-</span></div>
+  <canvas id="overlay" width="300" height="225"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.9.0"></script>
+  <script src="script.js"></script>
 </body>
 </html>
